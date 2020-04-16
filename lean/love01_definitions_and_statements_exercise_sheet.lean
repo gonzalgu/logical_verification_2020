@@ -20,9 +20,14 @@ be negative are represented by 0. For example:
     `sub 7 2 = 5`
     `sub 2 7 = 0` -/
 
-def sub : ℕ → ℕ → ℕ :=
-sorry
+def sub : ℕ → ℕ → ℕ 
+| 0 _ := 0
+| n 0 := n
+| (n+1) (m+1) := sub n m
+        
 
+    
+      
 /-! 1.2. Check that your function works as expected. -/
 
 #eval sub 0 0   -- expected: 0
@@ -66,6 +71,9 @@ def some_env : string → ℤ
 | _   := 201
 
 #eval eval some_env (aexp.var "x")   -- expected: 3
+#eval eval some_env (aexp.add (aexp.var "x") (aexp.num 5))
+#eval eval some_env (aexp.div (aexp.var "y") (aexp.num 0))
+
 -- invoke `#eval` here
 
 /-! 2.2. The following function simplifies arithmetic expressions involving
@@ -77,6 +85,14 @@ def simplify : aexp → aexp
 | (aexp.add (aexp.num 0) e₂) := simplify e₂
 | (aexp.add e₁ (aexp.num 0)) := simplify e₁
 -- insert the missing cases here
+| (aexp.mul (aexp.num 1) e₂) := simplify e₂ 
+| (aexp.mul e₁ (aexp.num 1)) := simplify e₁ 
+| (aexp.mul _ (aexp.num 0)) := aexp.num 0
+| (aexp.mul (aexp.num 0) _) := aexp.num 0
+
+| (aexp.div e₁ (aexp.num 1)) := simplify e₁ 
+
+| (aexp.sub e₁ (aexp.num 0)) := simplify e₁ 
 -- catch-all cases below
 | (aexp.num i)               := aexp.num i
 | (aexp.var x)               := aexp.var x
@@ -89,7 +105,8 @@ def simplify : aexp → aexp
 that the simplified expression should have the same semantics, with respect to
 `eval`, as the original expression. -/
 
-lemma simplify_correct (env : string → ℤ) (e : aexp) :
+lemma simplify_correct (env : string → ℤ) (e : aexp) : 
+    eval env (simplify e) = eval env e := sorry
 -- enter your lemma statement here
 
 
@@ -110,18 +127,18 @@ def K : α → β → α :=
 λa b, a
 
 def C : (α → β → γ) → β → α → γ :=
-sorry
-
+λ (f : (α → β → γ)) (b : β) (a : α), f a b
+--λ f b a, f a b
 def proj_1st : α → α → α :=
-sorry
+λ a₁ a₂, a₁ 
 
 /-! Please give a different answer than for `proj_1st`. -/
 
 def proj_2nd : α → α → α :=
-sorry
+λ a₁ a₂, a₂ 
 
 def some_nonsense : (α → β → γ) → α → (α → γ) → β → γ :=
-sorry
+λ (f : α → β → γ) (a : α) (g : α → γ) (b : β), f a b
 
 /-! 3.2. Show the typing derivation for your definition of `C` above, on paper
 or using ASCII or Unicode art. You might find the characters `–` (to draw
