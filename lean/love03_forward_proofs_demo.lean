@@ -87,6 +87,26 @@ have hb : b :=
 show b ∧ a, from
   and.intro hb ha
 
+lemma and_swap_alt (a b : Prop) : 
+  a ∧ b → b ∧ a := 
+assume hab : a ∧ b,
+have ha : a := hab.left,
+have hb : b := hab.right,
+show b ∧ a, from 
+  ⟨hb,ha⟩ 
+
+lemma and_swap_alt₂ (a b : Prop) : 
+  a ∧ b → b ∧ a := 
+begin
+  intro hab,
+  apply and.intro,
+  apply and.elim_right,
+  exact hab,
+  apply and.elim_left,
+  exact hab,
+end 
+  
+
 lemma or_swap (a b : Prop) :
   a ∨ b → b ∨ a :=
 assume hab : a ∨ b,

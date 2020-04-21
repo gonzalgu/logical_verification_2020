@@ -15,48 +15,85 @@ namespace LoVe
 
 lemma I (a : Prop) :
   a → a :=
-sorry
+assume ha : a, 
+show a, from ha
 
 lemma K (a b : Prop) :
   a → b → b :=
-sorry
+assume ha : a,
+assume hb : b,
+show b, 
+from hb
 
 lemma C (a b c : Prop) :
   (a → b → c) → b → a → c :=
-sorry
+assume f : (a → b → c),
+assume hb : b,
+assume ha : a,
+show c, 
+from f ha hb
 
 lemma proj_1st (a : Prop) :
   a → a → a :=
-sorry
+assume ha₁ : a,
+assume ha₂ : a,
+show a, 
+from ha₁
 
 /-! Please give a different answer than for `proj_1st`. -/
 
 lemma proj_2nd (a : Prop) :
   a → a → a :=
-sorry
+assume ha₁ : a,
+assume ha₂ : a,
+show a, 
+from ha₂ 
 
 lemma some_nonsense (a b c : Prop) :
   (a → b → c) → a → (a → c) → b → c :=
-sorry
+assume f : a → b → c,
+assume ha : a,
+assume g : a → c,
+assume hb : b,
+show c, 
+from f ha hb
 
 /-! 1.2. Supply a structured proof of the contraposition rule. -/
 
 lemma contrapositive (a b : Prop) :
   (a → b) → ¬ b → ¬ a :=
-sorry
+assume f : a → b,
+assume hnb : ¬b,
+assume ha : a,
+have hb : b, from f ha,
+show false, 
+from hnb hb
+  
 
 /-! 1.3. Supply a structured proof of the distributivity of `∀` over `∧`. -/
 
 lemma forall_and {α : Type} (p q : α → Prop) :
   (∀x, p x ∧ q x) ↔ (∀x, p x) ∧ (∀x, q x) :=
-sorry
+iff.intro 
+  (assume hpq : ∀ x, p x ∧ q x, 
+    show (∀ x, p x) ∧ (∀ x, q x), 
+    from ⟨λ z, (hpq z).left, λ z, (hpq z).right⟩ ) 
+  (assume hpandq : (∀ x, p x) ∧ (∀ x, q x), 
+    show ∀ x, p x ∧ q x, 
+    from λ z, ⟨ hpandq.left z, hpandq.right z⟩ )
 
 /-! 1.4. Reuse, if possible, the lemma `forall_and` you proved above to prove
 the following instance of the lemma. -/
 
 lemma forall_and_inst {α : Type} (r s : α → α → Prop) :
   (∀x, r x x ∧ s x x) ↔ (∀x, r x x) ∧ (∀x, s x x) :=
-sorry
+iff.intro 
+  (assume hrs : ∀ x, r x x ∧ s x x, 
+    show (∀ x, r x x) ∧ (∀ x, s x x), 
+    from ⟨ λ x, (hrs x).left, λ x, (hrs x).right⟩  )
+  (assume hrands : (∀ x, r x x) ∧ (∀ x, s x x), 
+    show ∀ x, r x x ∧ s x x, 
+    from λ x, ⟨ hrands.left x,  hrands.right x ⟩ )  
 
 
 /-! ## Question 2: Chain of Equalities
