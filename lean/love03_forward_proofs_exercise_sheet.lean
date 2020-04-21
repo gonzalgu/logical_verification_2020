@@ -111,7 +111,11 @@ Hint: You might need the tactics `simp` and `cc` and the lemmas `mul_add`,
 
 lemma binomial_square (a b : ℕ) :
   (a + b) * (a + b) = a * a + 2 * a * b + b * b :=
-sorry
+calc (a + b) * (a + b) = a * (a + b) + b * (a + b) : by rw add_mul 
+     ... = a * a + a * b + b * a + b * b : by simp [mul_add,add_mul]
+     ... = a * a + a * b + a * b + b * b : by cc
+     ... = a * a + 2 * a * b + b * b : by simp[mul_add,add_mul,two_mul]
+     
 
 /-! 2.2. Prove the same argument again, this time as a structured proof. Try to
 reuse as much of the above proof idea as possible. -/
