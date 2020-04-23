@@ -311,6 +311,14 @@ begin
   cc
 end
 
+lemma injection_example₂ {α : Type}(x y : α)(xs ys : list α)
+  (h : list.cons x xs = list.cons y ys) : 
+  x = y ∧ xs = ys := 
+begin
+  cases h,
+  split;refl,
+end
+
 /-! If `r` fails to match `l`, no subgoals emerge; the proof is complete. -/
 
 lemma distinctness_example {α : Type} (x y : α)
@@ -336,6 +344,14 @@ begin
     refl },
   case list.cons : y ys ih {
     simp [map, ih] }
+end
+
+lemma map_ident₂ {α : Type} (xs : list α) : 
+  map (λx, x) xs = xs := 
+begin
+  induction xs with y ys ih,
+  refl,
+  simp [map, ih],
 end
 
 lemma map_comp {α β γ : Type} (f : α → β) (g : β → γ)
@@ -375,7 +391,8 @@ def head_le {α : Type} : ∀xs : list α, xs ≠ [] → α
 
 #eval head_opt [3, 1, 4]
 #eval head_le [3, 1, 4] (by simp)
-#eval head_le ([] : list ℕ) sorry   -- fails
+#eval head_le ([] : list ℕ) sorry
+#eval head_le [2,3] (by simp)   -- fails
 
 def zip {α β : Type} : list α → list β → list (α × β)
 | (x :: xs) (y :: ys) := (x, y) :: zip xs ys

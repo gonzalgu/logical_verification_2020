@@ -26,9 +26,19 @@ not strong enough. Start by proving the following generalization (using the
 `induction` tactic or pattern matching): -/
 
 lemma accurev_eq_reverse_append {α : Type} :
-  ∀as xs : list α, accurev as xs = reverse xs ++ as :=
-sorry
-
+  ∀as xs : list α, accurev as xs = reverse xs ++ as 
+| [] [] := by refl
+| _ [] := by refl
+| [] (x::xs) := 
+  begin
+    simp [accurev, reverse],
+    apply accurev_eq_reverse_append,
+  end
+| (a::as) (x::xs) := 
+  begin
+    simp [accurev, reverse],
+    apply accurev_eq_reverse_append,
+  end
 /-! 1.2. Derive the desired equation. -/
 
 lemma accurev_eq_reverse {α : Type} (xs : list α) :
