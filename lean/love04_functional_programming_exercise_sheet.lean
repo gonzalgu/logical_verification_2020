@@ -57,8 +57,11 @@ end
 Hint: A one-line inductionless proof is possible. -/
 
 lemma accurev_accurev {α : Type} (xs : list α) :
-  accurev [] (accurev [] xs) = xs :=
-sorry
+  accurev [] (accurev [] xs) = xs := 
+begin
+  repeat {rw accurev_eq_reverse},
+  apply reverse_reverse,  
+end
 
 /-! 1.4. Prove the following lemma by structural induction, as a "paper" proof.
 This is a good exercise to develop a deeper understanding of how structural
@@ -103,8 +106,10 @@ at the front of a list.
 To avoid unpleasant surprises in the proofs, we recommend that you follow the
 same recursion pattern as for `drop` above. -/
 
-def take {α : Type} : ℕ → list α → list α :=
-sorry
+def take {α : Type} : ℕ → list α → list α 
+| 0       _         := []
+| (_ + 1) []        := []
+| (m + 1) (x :: xs) := x :: take m xs 
 
 #eval take 0 [3, 7, 11]   -- expected: []
 #eval take 1 [3, 7, 11]   -- expected: [3]
@@ -120,11 +125,32 @@ attribute. -/
 
 @[simp] lemma drop_nil {α : Type} :
   ∀n : ℕ, drop n ([] : list α) = [] :=
-sorry
+begin
+  intro n,
+  induction n with k ih,
+  { refl },
+  refl,
+  --simp [drop, ih],
+end
+
+lemma drop_nil₂ {α : Type} : 
+  ∀ n : ℕ, drop n ([] : list α) = []
+| 0 := by refl
+| (k+1) := by refl
 
 @[simp] lemma take_nil {α : Type} :
   ∀n : ℕ, take n ([] : list α) = [] :=
-sorry
+begin
+  intro n,  
+  induction n with k ih,
+  { refl },
+  refl,
+end
+
+lemma take_nil₂ {α : Type} : 
+  ∀ n : ℕ, take n ([] : list α) = [] 
+| 0     := by refl
+| (k+1) := by refl
 
 /-! 2.3. Follow the recursion pattern of `drop` and `take` to prove the
 following lemmas. In other words, for each lemma, there should be three cases,
@@ -137,16 +163,55 @@ Hint: The `refl` tactic might be useful in the third case of `drop_drop`. -/
 
 lemma drop_drop {α : Type} :
   ∀(m n : ℕ) (xs : list α), drop n (drop m xs) = drop (n + m) xs
-| 0       n xs        := by refl
+| 0         n          xs := by refl
+| m         0          xs := by simp[drop]
+| (m+1) (n+1)          [] := by refl
+| (m+1) (n+1)   (x::xs) := 
+  begin
+    simp [drop, drop_drop],
+    refl,   
+  end
+
+
+
 -- supply the two missing cases here
 
 lemma take_take {α : Type} :
-  ∀(m : ℕ) (xs : list α), take m (take m xs) = take m xs :=
-sorry
+  ∀(m : ℕ) (xs : list α), take m (take m xs) = take m xs 
+| 0       xs    := 
+  begin
+    refl,
+  end
+| (k+1)   []    := 
+  begin
+    refl,
+  end
+| (k+1) (x::xs) :=
+  begin
+    simp [take, take_take],    
+  end
 
 lemma take_drop {α : Type} :
-  ∀(n : ℕ) (xs : list α), take n xs ++ drop n xs = xs :=
-sorry
+  ∀(n : ℕ) (xs : list α), take n xs ++ drop n xs = xs 
+| 0       xs := 
+  begin
+    refl,
+  end
+| (k+1)   [] := 
+  begin
+    refl,
+  end
+| (k+1) (x :: xs) := 
+  begin
+    simp [take,drop, take_drop],
+    /-
+    rw take,
+    rw drop,
+    simp,
+    apply take_drop, -/
+  end
+
+
 
 
 /-! ## Question 3: A Type of λ-Terms
@@ -158,13 +223,25 @@ by the following context-free grammar:
            | 'lam' string term   -- λ-expression (e.g., `λx, t`)
            | 'app' term term     -- application (e.g., `t u`) -/
 
--- enter your definition here
+/-
+inductive list (T : Type u)
+| nil {} : list
+| cons (hd : T) (tl : list) : list
+-/
 
+-- enter your definition here
+inductive term  
+| var (name : string) : term
+| lam (v : string) (body : term) : term
+| app (e₁ : term) (e₂ : term) : term
 /-! 3.2. Register a textual representation of the type `term` as an instance of
 the `has_repr` type class. Make sure to supply enough parentheses to guarantee
 that the output is unambiguous. -/
 
 def term.repr : term → string
+| (term.var n) := n
+| (term.lam v b) := "(λ" ++ v ++ ", " ++ term.repr b ++ ")"
+| (term.app e₁ e₂) := "(" ++ term.repr e₁ ++ " " ++ term.repr e₂ ++ ")"
 -- enter your answer here
 
 @[instance] def term.has_repr : has_repr term :=
