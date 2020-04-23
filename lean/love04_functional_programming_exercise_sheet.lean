@@ -43,7 +43,14 @@ lemma accurev_eq_reverse_append {α : Type} :
 
 lemma accurev_eq_reverse {α : Type} (xs : list α) :
   accurev [] xs = reverse xs :=
-sorry
+begin
+  induction xs with x xs ih,
+  { refl },
+  { 
+    simp [accurev,reverse],
+    apply accurev_eq_reverse_append
+  },  
+end
 
 /-! 1.3. Prove the following property.
 
