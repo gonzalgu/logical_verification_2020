@@ -87,6 +87,49 @@ which key lemmas they depend on. You should be explicit whenever you use a
 function definition or an introduction rule for an inductive predicate. -/
 
 -- enter your paper proof here
+lemma accurev_eq_reverse_append₂ { α : Type } : 
+  ∀ as xs : list α, accurev as xs = reverse xs ++ as
+-- the proof proceeds by induction on as and xs 
+| []  []  := 
+  -- when as = [] and xs = [], we have accurev [][] = reverse [] ++ []
+  -- which is reduced to [] = [] ++ [] 
+  -- which is trivial by computation.
+  begin
+    rw accurev,
+    rw reverse,
+    refl,
+  end
+| []     (x::xs) := 
+  begin
+    -- when as = [] and ys = (x::xs)
+    -- we need to prove accurev [] (x::xs) = reverse (x::xs) ++ []
+    -- by computation we have
+    -- accurev [x] xs = reverse xs ++ [x]
+    -- to which we can apply the inductive hypothesis
+    --ih : ∀ xs, accurev [] xs = reverse xs ++ []
+    rw accurev,
+    rw reverse,
+    simp,
+    --apply inductive hypothesis
+    apply accurev_eq_reverse_append₂ [x] xs,
+  end
+| (a::as)  [] := 
+  begin
+    -- this case is trivial by computation.
+    --ih : ∀ as xs, accurev as xs = reverse xs ++ as
+    rw accurev,
+    rw reverse,
+    refl,
+  end
+| (a::as) (x::xs) := 
+  begin
+    simp [accurev, reverse],
+    -- apply inductive hypothesis
+    apply accurev_eq_reverse_append₂,
+  end
+
+
+
 
 
 /-! ## Question 2: Drop and Take
