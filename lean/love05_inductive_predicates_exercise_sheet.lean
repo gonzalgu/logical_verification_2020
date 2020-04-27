@@ -157,7 +157,22 @@ lemmas (e.g., `is_full_mirror`, `mirror_mirror`). -/
 
 lemma mirror_is_full {α : Type} :
   ∀t : btree α, is_full (mirror t) → is_full t :=
-sorry
+begin
+  intro t,
+  intro hfmt,
+  rw ←mirror_mirror t,
+  apply is_full_mirror,
+  assumption,
+end
+
+lemma mirror_is_full₂ {α : Type} : 
+  ∀t : btree α, is_full (mirror t) → is_full t := 
+assume t : btree α, 
+assume hfmt : is_full (mirror t),
+have mmt : mirror(mirror t) = t, from mirror_mirror t, 
+have hfmmt : is_full (mirror(mirror t)), from is_full_mirror _ hfmt,
+show is_full t,
+from eq.subst mmt hfmmt
 
 /-! 2.2. Define a `map` function on binary trees, similar to `list.map`. -/
 
@@ -233,4 +248,18 @@ begin
   }
 end
 
+-- forward attempt
+lemma btree.map_mirror₂  {α β : Type} (f : α → β) :
+  ∀t : btree α, is_full t → is_full (btree.map f t) := 
+  assume t : btree α,
+  assume hft : is_full t, 
+    match t, hft with 
+    | _, is_full.empty := 
+      begin
+        rw btree.map,
+        apply is_full.empty,
+      end
+    | _, (is_full.node v l r hfl hfr hiffe) := 
+      sorry
+    end
 end LoVe
