@@ -242,8 +242,8 @@ begin
   apply star_star_iff_star
 end
 
-#check funext
-#check propext
+#check @funext
+#check @propext
 
 
 /-! ## Rule Induction Pitfalls
@@ -393,6 +393,7 @@ begin
       simp [heq, even.add_two _ hk] } }
 end
 
+
 lemma even_iff₂ (n : ℕ) :
   even n ↔ n = 0 ∨ (∃m : ℕ, n = m + 2 ∧ even m) :=
 iff.intro
@@ -420,6 +421,45 @@ iff.intro
        end
      end
    end)
+
+lemma even_iff₃  (n : ℕ) :
+  even n ↔ n = 0 ∨ (∃m : ℕ, n = m + 2 ∧ even m) :=
+iff.intro 
+  (assume hen : even n, 
+  match n, hen with
+  | _, even.zero := 
+    show 0 = 0 ∨ _, 
+    from 
+      begin
+        left,
+        refl,
+      end 
+  | _, even.add_two k hek := 
+    show  _ ∨ (∃ (m : ℕ), k + 2 = m + 2 ∧ even m), 
+    from  
+    begin
+      right,
+      existsi k,
+      split,
+      refl,
+      assumption,
+    end 
+  end) 
+  (assume hor : (n = 0 ∨ ∃ (m : ℕ), n = m + 2 ∧ even m), 
+  show even n, 
+  from
+    begin
+      cases hor,
+      { simp [hor, even.zero] },
+      cases n,
+      { simp [even.zero] },
+      cases hor with m hand,
+      cases hand with heq hem,
+      rw heq,
+      apply even.add_two,
+      assumption,
+    end 
+  )
 
 
 /-! ## Further Examples
