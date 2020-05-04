@@ -25,7 +25,21 @@ a `λ` or `∀` binder, and the arguments of the `macro` constructor.
 Hint: Use `name.to_string` to convert a name to a string, and `repr` for other
 types that belong to the `has_repr` type class. -/
 
+private meta def aux (name : string) (args : list string) : string := 
+  name ++ "(" ++ string.intercalate ", " args ++ ")"
+
 -- enter your definition here
+meta def expr.repr : expr → string 
+| (expr.var i)                := aux "Var"    [repr i]  --"var(" ++ repr i ++ ")"
+| (expr.sort l)               := aux "Sort"   [l.to_string] 
+| (expr.const n lvls)         := aux "Const"  [n.to_string, lvls.to_string] 
+| (expr.mvar n pn t)          := aux "Mvar"   [n.to_string, pn.to_string, expr.repr t] 
+| (expr.local_const n pn _ t) := aux "Local_const" [n.to_string, pn.to_string,expr.repr t]
+| (expr.app e₁ e₂)            := aux "App"    [expr.repr e₁, expr.repr e₂] 
+| (expr.lam n _ t b)          := aux "Lam"    [n.to_string, expr.repr t, expr.repr b]
+| (expr.pi n _ t b)           := aux "Pi "    [n.to_string, expr.repr t, expr.repr b]
+| (expr.elet n t a b)         := aux "Elet "  [n.to_string, expr.repr t, expr.repr a, expr.repr b]
+
 
 /-! We register `expr.repr` in the `has_repr` type class, so that we can use
 `repr` without qualification in the future, and so that it is available to
@@ -42,6 +56,8 @@ meta instance expr.has_repr : has_repr expr :=
 /-! 1.3. Compare your answer with `expr.to_raw_fmt`. -/
 
 #check expr.to_raw_fmt
+
+
 
 
 /-! ## Question 2: `destruct_and` on Steroids
@@ -65,7 +81,8 @@ tactic on all goals and subgoals until the tactic fails on each of the goal) and
 quoting). -/
 
 meta def intro_ands : tactic unit :=
-sorry
+do  
+  tactic.repeat (tactic.applyc ``and.intro)
 
 lemma abcd_bd (a b c d : Prop) (h : a ∧ (b ∧ c) ∧ d) :
   b ∧ d :=
@@ -131,13 +148,43 @@ The above procedure might fail if there exists no hypotheses of the required
 form. Make sure to handle this failure gracefully, for example using
 `tactic.try` or `<|> pure ()`. -/
 
+
+#check @tactic.trace
+#check @list.mfirst
+#check @tactic.infer_type
+#check @tactic.cases
+
+
+private meta def helper_fun(exp : expr) : tactic expr 
+:= do 
+    t <- tactic.infer_type exp,
+    match t with 
+    | `(%%a ∧ %%b) := pure exp
+    | _ := tactic.failed
+    end
+
+#check list.mfirst helper_fun
+#check tactic.set_env
+#check tactic.get_env
+
+
 meta def destruct_ands : tactic unit :=
-sorry
+tactic.repeat $ 
+do{ 
+  ctx <- tactic.local_context,
+  fst <- list.mfirst helper_fun ctx,
+  lstNames <- tactic.cases fst,
+  return ()
+}
+  
+
+  --pure ()
 
 lemma abcd_bd₂ (a b c d : Prop) (h : a ∧ (b ∧ c) ∧ d) :
   b ∧ d :=
 begin
   destruct_ands,
+  
   /- The proof state should be as follows:
 
   a b c d : Prop,
@@ -149,15 +196,29 @@ begin
   sorry
 end
 
+lemma or_abcd_b_or_d (a b c d : Prop) (h : a ∨ (b ∨ c) ∨ d) : 
+  b ∨ d := 
+begin
+  destruct_ands,
+
+end
+
+
 /-! 2.3. Combine the two tactics developed above and `tactic.assumption` to
 implement the desired `destro_and` tactic. -/
 
 meta def destro_and : tactic unit :=
-sorry
+do
+  destruct_ands,
+  intro_ands,
+  tactic.repeat $ tactic.assumption
 
 lemma abcd_bd₃ (a b c d : Prop) (h : a ∧ (b ∧ c) ∧ d) :
   b ∧ d :=
-by destro_and
+begin
+  destro_and,
+end
+--by destro_and
 
 lemma abcd_bacb₂ (a b c d : Prop) (h : a ∧ (b ∧ c) ∧ d) :
   b ∧ (a ∧ (c ∧ b)) :=
