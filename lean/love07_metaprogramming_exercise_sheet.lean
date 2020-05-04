@@ -269,16 +269,21 @@ You can use `expr.fold` to walk through the expression, `||` and `ff` for
 Booleans, and `expr.is_constant_of` to check whether an expression is a
 constant. -/
 
+#check @expr.fold
+#check @expr.is_constant_of
+
 meta def term_contains (e : expr) (nam : name) : bool :=
-sorry
+  e.fold ff (λ x _ acc, x.is_constant_of nam || acc)
 
 /-! 3.2 (**optional**). Write a metafunction that checks whether an expression
 contains **all** constants in a list.
 
 You can use `list.band` (Boolean and). -/
 
+#check list.band
+
 meta def term_contains_all (nams : list name) (e : expr) : bool :=
-sorry
+  list.band $ nams.map (λ n, term_contains e n)
 
 /-! 3.3 (**optional**). Produce the list of all theorems that contain all
 constants `nams` in their statement.
@@ -287,9 +292,12 @@ constants `nams` in their statement.
 `declaration.type`, you get the type of a theorem, and with
 `declaration.to_name` you get the name. -/
 
-meta def list_constants (nams : list name) (e : environment) : list name :=
-sorry
+#check @environment.fold
+#check declaration.type
+#check declaration.to_name
 
+meta def list_constants (nams : list name) (e : environment) : list name :=
+e.fold [] (λ dec thms, if term_contains_all nams dec.type then dec.to_name :: thms else thms)
 /-! Finally, we develop a tactic that uses the above metafunctions to log all
 found theorems: -/
 
@@ -302,5 +310,8 @@ do
 
 run_cmd find_constants []   -- lists all theorems
 run_cmd find_constants [`list.map, `function.comp]
+
+#check list.foldr_map
+#check list.filter_map_map
 
 end LoVe
