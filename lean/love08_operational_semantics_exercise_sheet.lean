@@ -46,19 +46,120 @@ show (S₁, s) ⟹ t ↔ (S₃, s) ⟹ t, from
 
 lemma big_step_equiv.skip_assign_id {x} :
   stmt.assign x (λs, s x) ≈ stmt.skip :=
-sorry
+begin
+  unfold big_step_equiv,
+  intros s t,
+  apply iff.intro,
+  {
+    intro h,
+    apply big_step_skip_iff.mpr,
+    have h2 : t = s{x ↦ s x} := big_step_assign_iff.mp h,
+    rw h2,
+    simp,       
+  },
+  {
+    intro h,
+    apply big_step_assign_iff.mpr,
+    have h2 :  t = s := big_step_skip_iff.mp h,
+    rw h2,
+    simp,    
+  }
+end
 
 lemma big_step_equiv.seq_skip_left {S : stmt} :
   stmt.skip ;; S ≈ S :=
-sorry
+begin
+  unfold big_step_equiv,
+  intros s t,
+  apply iff.intro,
+  {
+    intro h,
+    cases h,
+    cases h_hS,
+    assumption,
+  },
+  {
+    intro h,
+    apply big_step_seq_iff.mpr,
+    existsi s,
+    split,
+    {
+      apply big_step_skip_iff.mpr,
+      refl,
+    },
+    {
+      assumption,
+    }
+  } 
+end
 
 lemma big_step_equiv.seq_skip_right {S : stmt} :
   S ;; stmt.skip ≈ S :=
-sorry
+begin
+  unfold big_step_equiv,
+  intros s t,
+  apply iff.intro,
+  {
+    intro h,
+    cases h,
+    cases h_hT,
+    assumption,
+  },
+  {
+    intro h,
+    apply big_step_seq_iff.mpr,
+    existsi t,
+    split,
+    {
+      assumption,
+    },
+    {
+      apply big_step_skip_iff.mpr,
+      refl,
+    }
+  }
+end
 
 lemma big_step_equiv.ite_seq_while {b} {S : stmt} :
   stmt.ite b (S ;; stmt.while b S) stmt.skip ≈ stmt.while b S :=
-sorry
+begin
+  unfold big_step_equiv,
+  intros s t,
+  apply iff.intro,
+  {
+    intro h,
+    cases h,
+    {
+      cases h_hbody,
+      apply (big_step_while_true_iff h_hcond).mpr,
+      existsi h_hbody_t,
+      split,
+      {
+        assumption,
+      },
+      {
+        assumption,
+      }
+    },
+    {
+      cases h_hbody,
+      apply (big_step_while_false_iff h_hcond).mpr,
+      refl,
+    }
+  },
+  {
+    intro h,
+    cases h,
+    {
+      apply big_step.ite_true h_hcond _,
+      apply big_step.seq h_hbody h_hrest,      
+    },
+    {
+      apply big_step.ite_false h_hcond _,
+      simp,
+    }
+  }
+end
 
 /-! 1.2. Program equivalence can be used to replace subprograms by other
 subprograms with the same semantics. Prove the following so-called congruence
@@ -67,18 +168,79 @@ rules: -/
 lemma big_step_equiv.seq_congr {S₁ S₂ T₁ T₂ : stmt} (hS : S₁ ≈ S₂)
     (hT : T₁ ≈ T₂) :
   S₁ ;; T₁ ≈ S₂ ;; T₂ :=
-sorry
+begin
+  unfold big_step_equiv,
+  intros s t,
+  apply iff.intro,
+  {
+    intro h,
+    cases h,
+    unfold big_step_equiv at hS hT,
+    have h_hS₂ : (S₂, s) ⟹ h_t := (hS s h_t).mp h_hS,
+    have h_hT₂ : (T₂, h_t) ⟹ t := (hT h_t t).mp h_hT,
+    apply big_step.seq h_hS₂,
+    assumption,    
+  },
+  {
+    intro h,
+    cases h,
+    unfold big_step_equiv at hS hT,
+    have h_hS₁ : (S₁, s) ⟹ h_t := (hS s h_t).mpr h_hS,
+    have h_hT₁ : (T₁, h_t) ⟹ t := (hT h_t t).mpr h_hT,
+    apply big_step.seq h_hS₁,
+    assumption,
+  }
+end
 
 lemma big_step_equiv.ite_congr {b} {S₁ S₂ T₁ T₂ : stmt} (hS : S₁ ≈ S₂)
     (hT : T₁ ≈ T₂) :
   stmt.ite b S₁ T₁ ≈ stmt.ite b S₂ T₂ :=
-sorry
+begin
+  unfold big_step_equiv,
+  intros s t,
+  apply iff.intro,
+  {
+    intro h,
+    cases h,
+    {
+      apply big_step.ite_true h_hcond,
+      unfold big_step_equiv at hS,
+      apply (hS s t).mp,
+      assumption,
+    },
+    {
+      apply big_step.ite_false h_hcond,
+      unfold big_step_equiv at hT,
+      apply (hT s t).mp,
+      assumption,
+    }
+  },
+  {
+    intro h,
+    cases h,
+    {
+      apply big_step.ite_true h_hcond,
+      unfold big_step_equiv at hS,
+      apply (hS s t).mpr,
+      assumption,
+    },
+    {
+      apply big_step.ite_false h_hcond,
+      unfold big_step_equiv at hT,
+      apply (hT s t).mpr,
+      assumption,
+    }
+  }
+end
 
 /-! 1.3 (**optional**): Prove one more congruence rule. This one is more
 difficult. -/
 
 lemma denote_equiv.while_congr {b} {S₁ S₂ : stmt} (hS : S₁ ≈ S₂) :
   stmt.while b S₁ ≈ stmt.while b S₂ :=
+begin
+  sorry,
+end
 
 
 /-! ## Question 2: Guarded Command Language (GCL)
