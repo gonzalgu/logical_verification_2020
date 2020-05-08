@@ -66,6 +66,21 @@ begin
   }
 end
 
+lemma big_step_equiv.skip_assign_id₂ {x} :
+  stmt.assign x (λs, s x) ≈ stmt.skip :=
+fix s t, 
+iff.intro 
+  (assume h : (stmt.assign x (λ (s : state), s x), s) ⟹ t,
+  have h₂ : t = s{x ↦ (λ (s : state), s x) s}, 
+  from (big_step_assign_iff.mp h),
+  show (stmt.skip, s) ⟹ t, 
+  from by simp [h₂]) 
+  (assume h : (stmt.skip, s) ⟹ t, 
+  have hst : t = s, from big_step_skip_iff.mp h,
+  by simp [hst])
+
+
+
 lemma big_step_equiv.seq_skip_left {S : stmt} :
   stmt.skip ;; S ≈ S :=
 begin
@@ -239,6 +254,21 @@ difficult. -/
 lemma denote_equiv.while_congr {b} {S₁ S₂ : stmt} (hS : S₁ ≈ S₂) :
   stmt.while b S₁ ≈ stmt.while b S₂ :=
 begin
+  unfold big_step_equiv,
+  intros s t,
+  apply iff.intro,
+  {
+    intro h,    
+    cases h,
+    apply (big_step_while_true_iff h_hcond).mpr,
+    existsi h_t,
+    split,
+    {
+      apply (hS _ _).mp,
+      assumption,
+    },
+    sorry,
+  },
   sorry,
 end
 
