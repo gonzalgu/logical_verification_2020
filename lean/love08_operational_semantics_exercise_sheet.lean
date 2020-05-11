@@ -337,26 +337,121 @@ WHILE language. -/
 
 @[simp] lemma big_step_assign_iff {x a s t} :
   (stmt.assign x a, s) ⟹ t ↔ t = s{x ↦ a s} :=
-sorry
+begin
+  apply iff.intro,
+  {
+    intro h,
+    cases h,
+    refl,
+  },
+  {
+    intro h,
+    rw h,
+    exact big_step.assign,
+  }
+end
+
 
 @[simp] lemma big_step_assert {b s t} :
   (stmt.assert b, s) ⟹ t ↔ t = s ∧ b s :=
-sorry
+begin
+  apply iff.intro,
+  {
+    intro hassert,
+    cases hassert,
+    split,
+    {
+      refl,
+    },
+    {
+      assumption,
+    }
+  },
+  {
+    intro hts_bs,
+    cases hts_bs with hts hassert,
+    rw hts,
+    apply big_step.assert hassert,
+  }
+end
 
 @[simp] lemma big_step_seq_iff {S₁ S₂ s t} :
   (stmt.seq S₁ S₂, s) ⟹ t ↔ (∃u, (S₁, s) ⟹ u ∧ (S₂, u) ⟹ t) :=
-sorry
+begin
+  apply iff.intro,
+  {
+    intro hseq,
+    cases hseq,
+    existsi hseq_t,
+    split;assumption,     
+  },
+  {
+    intro hexistsu,
+    cases hexistsu with st hS₁_S₂,
+    cases hS₁_S₂ with hS₁ hS₂,   
+    apply big_step.seq hS₁ hS₂,
+  }
+end
 
 lemma big_step_loop {S s u} :
   (stmt.loop S, s) ⟹ u ↔
   (s = u ∨ (∃t, (S, s) ⟹ t ∧ (stmt.loop S, t) ⟹ u)) :=
-sorry
+begin
+  apply iff.intro,
+  {
+    intro hloop,
+    cases hloop,
+    {
+      left,
+      refl,
+    },
+    {
+      right,
+      existsi hloop_t,
+      split,
+      {
+        assumption,
+      },
+      {
+        assumption,
+      }
+    }
+  },
+  {
+    intro hor,
+    cases hor,
+    {
+      rw hor,
+      apply big_step.loop_base,
+    },
+    {
+        cases hor with st hand,
+        cases hand,
+        apply big_step.loop_step st hand_left hand_right,        
+    }
+  }
+end
 
 @[simp] lemma big_step_choice {Ss s t} :
   (stmt.choice Ss, s) ⟹ t ↔
   (∃(i : ℕ) (hless : i < list.length Ss),
      (list.nth_le Ss i hless, s) ⟹ t) :=
-sorry
+begin
+  apply iff.intro,
+  {
+    intro hchoice,
+    cases hchoice,
+    existsi hchoice_i,
+    existsi hchoice_hless,
+    assumption,      
+  },
+  {
+    intro hexists,
+    cases hexists with n hexists,
+    cases hexists with hless hnth,
+    apply big_step.choice n hless hnth,
+  }
+end
 
 end gcl
 
@@ -365,14 +460,15 @@ program, by filling in the `sorry` placeholders below. -/
 
 def gcl_of : stmt → gcl.stmt state
 | stmt.skip         := gcl.stmt.assert (λ_, true)
-| (stmt.assign x a) :=
-  sorry
-| (S ;; T)          :=
-  sorry
-| (stmt.ite b S T)  :=
-  sorry
+| (stmt.assign x a) := gcl.stmt.assign x a
+  
+| (S ;; T)          := gcl.stmt.seq (gcl_of S) (gcl_of T)
+| (stmt.ite b S T)  := gcl.stmt.choice [ 
+  gcl.stmt.seq (gcl.stmt.assert b) (gcl_of S), 
+  gcl_of T]
+  
 | (stmt.while b S)  :=
-  sorry
+  gcl.stmt.loop (gcl.stmt.seq (gcl.stmt.assert b) (gcl_of S))
 
 /-! 2.3. In the definition of `gcl_of` above, `skip` is translated to
 `assert (λ_, true)`. Looking at the big-step semantics of both constructs, we
