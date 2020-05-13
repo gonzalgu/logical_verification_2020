@@ -244,6 +244,27 @@ assume hst : (S, s) ⟹ t,
 show Q' t, from
   hq _ (h s t (hp s hs) hst)
 
+lemma tac_style_consequence { P P' Q Q' : state → Prop} {S}
+  (h : {* P *} S {* Q *}) (hp : ∀s, P' s → P s)
+  (hq : ∀s, Q s → Q' s) : 
+  {* P' *} S {* Q' *} := 
+begin
+  intros s t hP' hS,
+  apply hq,
+  apply h s t,
+  apply hp,
+  assumption,
+  assumption,  
+end
+
+
+lemma fwd_style_consequence { P P' Q Q' : state → Prop} {S}
+  (h : {* P *} S {* Q *}) (hp : ∀s, P' s → P s)
+  (hq : ∀s, Q s → Q' s) : 
+  {* P' *} S {* Q' *} :=
+fix s t,
+(λ (hP' : P' s) (hS : (S, s) ⟹ t), hq t (h s t (hp s hP') hS))
+
 lemma consequence_left (P' : state → Prop) {P Q S}
     (h : {* P *} S {* Q *}) (hp : ∀s, P' s → P s) :
   {* P' *} S {* Q *} :=
@@ -337,7 +358,7 @@ begin
   cases hstep_hT,
   cases hstep_hT_hS,
   cases hstep_hT_hT,
-  finish
+  finish,
 end
 
 
