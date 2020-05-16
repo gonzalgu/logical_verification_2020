@@ -32,29 +32,87 @@ lemma list.length_add :
   ∀(xs : list ℤ) (ys : list ℤ) (h : list.length xs = list.length ys),
     list.length (list.add xs ys) = list.length xs
 | []        []        :=
-  sorry
+  begin
+    simp,
+    refl,
+  end
 | (x :: xs) (y :: ys) :=
-  sorry
+  begin
+    simp,
+    intro h,
+    rw list.add,
+    rw list.length,
+    simp,
+    apply list.length_add,
+    exact h,
+  end
 | []        (y :: ys) :=
-  sorry
+  begin
+    simp,
+    intro h,
+    refl,
+  end
 | (x :: xs) []        :=
-  sorry
+  begin
+    simp,
+  end
 
 /-! 1.2. Define componentwise addition on vectors using `list.add` and
 `length.length_add`. -/
 
 def vector.add {n : ℕ} : vector ℤ n → vector ℤ n → vector ℤ n :=
-sorry
+λ v1 v2, subtype.mk (list.add (subtype.val v1) (subtype.val v2)) 
+  begin
+    have hl1 : (list.length v1.val) = n := 
+    begin
+      apply subtype.property v1,
+    end,
+    have hl2 : (list.length v2.val) = n := 
+    begin
+      apply subtype.property v2,
+    end,
+    rw list.length_add,
+    {
+      assumption,
+    },
+    {
+      cc,
+    }    
+  end
 
 /-! 1.3. Show that `list.add` and `vector.add` are commutative. -/
 
 lemma list.add.comm :
-  ∀(xs : list ℤ) (ys : list ℤ), list.add xs ys = list.add ys xs :=
-sorry
+  ∀(xs : list ℤ) (ys : list ℤ), list.add xs ys = list.add ys xs 
+| [] [] := 
+  begin
+    refl,
+  end
+| (x::xs) [] := 
+  begin
+    repeat { rw list.add},    
+  end
+| []      (y::ys) := 
+  begin
+    repeat { rw list.add},
+  end
+| (x::xs) (y::ys) := 
+  begin
+    rw list.add,
+    rw list.add,
+    rw add_comm,
+    simp,
+    apply list.add.comm,
+  end
+
 
 lemma vector.add.comm {n : ℕ} (x y : vector ℤ n) :
   vector.add x y = vector.add y x :=
-sorry
+begin
+  apply subtype.eq,
+  simp [vector.add],
+  apply list.add.comm,
+end
 
 
 /-! ## Question 2: Integers as Quotients
@@ -69,16 +127,33 @@ Lean's predefined type `int` (= `ℤ`): -/
 /-! 2.1. Define negation on these integers. -/
 
 def int.neg : int → int :=
-sorry
+quotient.lift (λ p : ℕ × ℕ, ⟦ (p.snd, p.fst)⟧)
+  begin
+    intros a b,
+    intro h,
+    apply quotient.sound,
+    
+    rw int.rel_iff at *,
+    simp,
+    rw h,    
+  end
 
 /-! 2.2. Prove the following lemmas about negation. -/
 
 lemma int.neg_eq (p n : ℕ) :
   int.neg ⟦(p, n)⟧ = ⟦(n, p)⟧ :=
-sorry
+begin
+  simp [int.neg],
+end
 
 lemma int.neg_neg (a : int) :
   int.neg (int.neg a) = a :=
-sorry
+begin
+  apply quotient.induction_on a,
+  intro pn,
+  cases pn with p n,
+  rw int.neg_eq,
+  rw int.neg_eq,  
+end
 
 end LoVe
