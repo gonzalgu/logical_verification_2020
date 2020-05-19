@@ -17,11 +17,18 @@ namespace LoVe
 Hint: The lemma `fraction.mk.inj_eq` might be useful. -/
 
 #check fraction.mk.inj_eq
+#check fraction.mk.inj
 
 lemma fraction.ext (a b : fraction) (hnum : fraction.num a = fraction.num b)
     (hdenom : fraction.denom a = fraction.denom b) :
   a = b :=
-sorry
+begin
+  cases a with an ad adnz,
+  cases b with bn bd bdnz,
+  rw fraction.mk.inj_eq,
+  exact ⟨ hnum, hdenom ⟩,
+end
+
 
 /-! 1.2. Extending the `fraction.has_mul` instance from the lecture, declare
 `fraction` as an instance of `semigroup`.
@@ -35,7 +42,10 @@ Hint: Use the lemma `fraction.ext` above, and possibly `fraction.mul_num`, and
 
 @[instance] def fraction.semigroup : semigroup fraction :=
 { mul_assoc :=
-    sorry,
+    begin
+      intros a b c,      
+      apply fraction.ext;simp;rw mul_assoc,            
+    end,
   ..fraction.has_mul }
 
 /-! 1.3. Extending the `rat.has_mul` instance from the lecture, declare `rat` as
@@ -43,7 +53,9 @@ an instance of `semigroup`. -/
 
 @[instance] def rat.semigroup : semigroup rat :=
 { mul_assoc :=
-    sorry,
+    begin
+      sorry,
+    end,
   ..rat.has_mul }
 
 end LoVe
